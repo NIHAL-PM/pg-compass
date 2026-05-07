@@ -20,6 +20,7 @@ A fast, minimal desktop database viewer for **PostgreSQL**, inspired by the usab
 - 📥 **Export** — export query results and table data as CSV or JSON.
 - 🔍 **SQL query editor** — run ad-hoc queries with inline result previews.
 - 🌓 **Dark/Light mode** — dark by default, because we're not animals.
+- 🤖 **Optional BYOAI assistant** — generate SQL from natural language using your own provider (local Ollama or hosted APIs).
 - 🛟 **Type-safe** — fully written in TypeScript with type-safe IPC between Electron processes.
 - 🔓 **Open source** — MIT licensed, no accounts, no telemetry, no nonsense.
 

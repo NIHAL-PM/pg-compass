@@ -35,6 +35,7 @@ function buildTabId(view: WorkspaceTabView): string {
   const base = `${view.path.connectionId}:${view.type}`;
 
   if (view.type === 'schema-list') return base;
+  if (view.type === 'ai-chat') return base;
   if (view.type === 'schema') return `${base}:${view.path.schemaName}`;
   if (view.type === 'table-list' || view.type === 'table-details')
     return `${base}:${view.path.schemaName}:${view.path.tableName}`;
@@ -45,6 +46,7 @@ function buildTabId(view: WorkspaceTabView): string {
 
 function buildTabTitle(view: WorkspaceTabView): string {
   if (view.type === 'schema-list') return view.path.connectionLabel;
+  if (view.type === 'ai-chat') return 'AI Assistant';
   if (view.type === 'schema') return view.path.schemaName;
   if (view.type === 'table-list' || view.type === 'table-details') return view.path.tableName;
 
@@ -95,6 +97,9 @@ export function WorkspaceProvider({ children }: Readonly<{ children: ReactNode }
         ...prev,
         [connectionId]: result.data ?? [],
       }));
+      if (force) {
+        globalThis.window.aiApi?.clearContext(connectionId).catch(() => undefined);
+      }
       return result.data;
     },
     [getSchemaTree, settings.general.hideInternalSchemas],

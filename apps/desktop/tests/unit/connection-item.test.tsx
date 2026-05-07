@@ -8,6 +8,7 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useConnections } from "@/hooks/use-connections";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useSettings } from "@/hooks/use-settings";
 import type { ConnectionConfig } from "@/shared/types/connection";
 
 vi.mock("@/hooks/use-connections", () => ({
@@ -16,6 +17,10 @@ vi.mock("@/hooks/use-connections", () => ({
 
 vi.mock("@/hooks/use-workspace", () => ({
   useWorkspace: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-settings", () => ({
+  useSettings: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({
@@ -72,6 +77,45 @@ describe("ConnectionItem", () => {
       navigateToView: vi.fn(),
       refreshSchemaTree: vi.fn(),
       refreshTabs: vi.fn(),
+    });
+
+    vi.mocked(useSettings).mockReturnValue({
+      settings: {
+        general: {
+          readOnlyMode: false,
+          shellAccess: false,
+          enableDevTools: true,
+          hideInternalSchemas: true,
+        },
+        appearance: {
+          theme: "dark",
+          sidebarWidth: 256,
+        },
+        privacy: {
+          automaticUpdates: true,
+        },
+        ai: {
+          enabled: false,
+          provider: "ollama",
+          providers: {
+            ollama: { model: "llama3.1", baseUrl: "http://localhost:11434/v1" },
+            openai: { model: "gpt-4o-mini", baseUrl: "https://api.openai.com/v1" },
+            anthropic: { model: "claude-3-5-sonnet-20240620", baseUrl: "https://api.anthropic.com/v1" },
+            gemini: { model: "gemini-1.5-flash", baseUrl: "https://generativelanguage.googleapis.com/v1beta" },
+            openrouter: { model: "openai/gpt-4o-mini", baseUrl: "https://openrouter.ai/api/v1" },
+          },
+          mcp: {
+            enabled: false,
+            serverCommand: "",
+            serverArgs: "",
+          },
+        },
+      },
+      loading: false,
+      resolvedTheme: "dark",
+      refresh: vi.fn(),
+      updateSettings: vi.fn(),
+      setTheme: vi.fn(),
     });
 
     Object.defineProperty(navigator, "clipboard", {

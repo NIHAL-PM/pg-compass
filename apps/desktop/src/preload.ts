@@ -2,6 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from "electron";
+import { AiChannels } from "./shared/types/ai";
 import { ConnectionChannels } from "./shared/types/connection";
 import { SettingsChannels } from "./shared/types/settings";
 import { TableDataChannels } from "./shared/types/table-data";
@@ -14,6 +15,7 @@ import type {
   DatabaseSchema,
   SchemaTreeOptions,
 } from "./shared/types/connection";
+import type { AiChatRequest, AiChatResponse, AiSqlExecuteParams, AiSqlExecuteResult } from "./shared/types/ai";
 import type { AppSettings, AppSettingsPatch } from "./shared/types/settings";
 import type {
   ColumnStructure,
@@ -90,6 +92,17 @@ const settingsApi = {
 
   update: (patch: AppSettingsPatch): Promise<IpcResult<AppSettings>> =>
     ipcRenderer.invoke(SettingsChannels.UPDATE, patch),
+};
+
+const aiApi = {
+  generateChat: (params: AiChatRequest): Promise<IpcResult<AiChatResponse>> =>
+    ipcRenderer.invoke(AiChannels.GENERATE, params),
+
+  executeSql: (params: AiSqlExecuteParams): Promise<IpcResult<AiSqlExecuteResult>> =>
+    ipcRenderer.invoke(AiChannels.EXECUTE_SQL, params),
+
+  clearContext: (connectionId: string): Promise<IpcResult<boolean>> =>
+    ipcRenderer.invoke(AiChannels.CLEAR_CONTEXT, connectionId),
 };
 
 const tableDataApi = {
@@ -209,6 +222,7 @@ const workspaceApi = {
 };
 
 contextBridge.exposeInMainWorld("connectionApi", connectionApi);
+contextBridge.exposeInMainWorld("aiApi", aiApi);
 contextBridge.exposeInMainWorld("settingsApi", settingsApi);
 contextBridge.exposeInMainWorld("tableDataApi", tableDataApi);
 contextBridge.exposeInMainWorld("helpApi", helpApi);

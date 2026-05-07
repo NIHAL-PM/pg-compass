@@ -4,6 +4,7 @@ import started from 'electron-squirrel-startup';
 import { registerConnectionHandlers } from './main/connection-ipc';
 import { registerSettingsHandlers } from './main/settings-ipc';
 import { registerTableDataHandlers } from './main/table-data-ipc';
+import { registerAiHandlers } from './main/ai-ipc';
 import { destroyAllPools } from './main/pg-utils';
 import { getSettings } from './main/settings-store';
 import { buildAppMenu } from './main/app-menu';
@@ -47,6 +48,7 @@ let cachedSettings = getSettings();
 // Register IPC handlers before window creation.
 registerConnectionHandlers();
 registerTableDataHandlers();
+registerAiHandlers();
 registerSettingsHandlers((settings) => {
   cachedSettings = settings;
   if (!settings.general.enableDevTools) {

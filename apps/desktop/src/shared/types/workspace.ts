@@ -17,10 +17,16 @@ export interface ViewListViewerPath extends WorkspacePath {
   viewName: string;
 }
 
+export interface AiChatViewerPath extends DatabaseViewerPath {}
+
 export type WorkspaceTabView =
   | {
       type: 'schema-list';
       path: DatabaseViewerPath;
+    }
+  | {
+      type: 'ai-chat';
+      path: AiChatViewerPath;
     }
   | {
       type: 'schema';

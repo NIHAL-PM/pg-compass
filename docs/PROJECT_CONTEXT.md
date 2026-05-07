@@ -66,6 +66,10 @@ The table viewer consists of multiple tabs: Data, Structure, Indexes, Constraint
 
 The data view (and the query's data view) supports exporting the data as CSV or JSON.
 
+### Optional AI Assistant
+
+PG Compass includes an **opt-in** BYOAI assistant that can turn natural language prompts into SQL. It is disabled by default, uses locally stored credentials, and never sends network requests unless explicitly enabled by the user.
+
 ## Design Principles
 
 1. Minimal UI

@@ -7,6 +7,7 @@ export function buildWindowTitle(view: WorkspaceTabView | undefined): string {
   const label = view.path.connectionLabel;
 
   if (view.type === "schema-list") return `${base} - ${label}`;
+  if (view.type === "ai-chat") return `${base} - ${label}/AI`;
 
   const schema = view.path.schemaName;
 

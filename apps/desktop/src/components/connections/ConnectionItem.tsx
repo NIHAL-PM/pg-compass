@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Bot,
   ChevronRight,
   Copy,
   Database,
@@ -32,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useConnections } from '@/hooks/use-connections';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { useSettings } from '@/hooks/use-settings';
 import type { ConnectionConfig, DatabaseSchema } from '@/shared/types/connection';
 
 interface ConnectionItemProps {
@@ -147,6 +149,7 @@ export function ConnectionItem({ connection, onEdit }: Readonly<ConnectionItemPr
     refreshSchemaTree,
     openTab,
   } = useWorkspace();
+  const { settings } = useSettings();
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -448,6 +451,26 @@ export function ConnectionItem({ connection, onEdit }: Readonly<ConnectionItemPr
                   <Edit className="mr-2 size-3" />
                   Edit
                 </DropdownMenuItem>
+                {settings.ai.enabled && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const connectionLabel = getDatabaseName();
+                      openTab(
+                        {
+                          type: 'ai-chat',
+                          path: {
+                            connectionId: connection.id,
+                            connectionLabel,
+                          },
+                        },
+                        connection.color,
+                      ).catch(() => undefined);
+                    }}
+                  >
+                    <Bot className="mr-2 size-3" />
+                    AI Assistant
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={() => {
                     handleCopyConnectionString().catch(() => undefined);

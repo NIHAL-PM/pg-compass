@@ -10,6 +10,7 @@ import { TableListViewer } from '@/components/workspace/table-list-viewer';
 import { TableDetailsViewer } from '@/components/workspace/table-details-viewer';
 import { ViewListViewer } from '@/components/workspace/view-list-viewer';
 import { ViewDetailsViewer } from '@/components/workspace/view-details-viewer';
+import { AiChatViewer } from '@/components/workspace/ai-chat-viewer';
 import type { WorkspaceTab, WorkspaceTabView } from '@/shared/types/workspace';
 import { WelcomeScreen } from './welcome-screen';
 import { ApplicationTitle } from '../topbar/application-title';
@@ -169,6 +170,10 @@ function TabViewRenderer({ view }: Readonly<{ view: WorkspaceTabView }>) {
 
   if (view.type === 'schema-list') {
     return <SchemaListViewer path={view.path} />;
+  }
+
+  if (view.type === 'ai-chat') {
+    return <AiChatViewer path={view.path} />;
   }
 
   if (view.type === 'table-list') {

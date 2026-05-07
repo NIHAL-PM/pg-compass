@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Monitor, Moon, Palette, Settings, Shield, Sun } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Bot, Monitor, Moon, Palette, Settings, Shield, Sun } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -8,14 +8,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSettings } from '@/hooks/use-settings';
 import { cn } from '@/lib/utils';
-import type { ThemePreference } from '@/shared/types/settings';
+import type { AiProvider, ThemePreference } from '@/shared/types/settings';
 
-type SettingsCategory = 'general' | 'appearance' | 'privacy';
+type SettingsCategory = 'general' | 'appearance' | 'privacy' | 'ai';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -30,6 +32,7 @@ const categories: Array<{
   { id: 'general', label: 'General', icon: Settings },
   { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'privacy', label: 'Privacy', icon: Shield },
+  { id: 'ai', label: 'AI', icon: Bot },
 ];
 
 export function SettingsDialog({ open, onOpenChange }: Readonly<SettingsDialogProps>) {
@@ -68,6 +71,7 @@ export function SettingsDialog({ open, onOpenChange }: Readonly<SettingsDialogPr
             {category === 'general' && <GeneralSettingsPanel />}
             {category === 'appearance' && <AppearanceSettingsPanel />}
             {category === 'privacy' && <PrivacySettingsPanel />}
+            {category === 'ai' && <AiSettingsPanel />}
           </section>
         </div>
       </DialogContent>
@@ -189,6 +193,187 @@ function PrivacySettingsPanel() {
           updateSettings({ privacy: { automaticUpdates: checked } })
         }
       />
+    </div>
+  );
+}
+
+function AiSettingsPanel() {
+  const { settings, updateSettings } = useSettings();
+  const providers = useMemo(
+    () =>
+      [
+        { value: 'ollama', label: 'Ollama (Local)' },
+        { value: 'openai', label: 'OpenAI' },
+        { value: 'anthropic', label: 'Anthropic' },
+        { value: 'gemini', label: 'Gemini' },
+        { value: 'openrouter', label: 'OpenRouter' },
+      ] as const,
+    [],
+  );
+  const providerConfig = settings.ai.providers[settings.ai.provider];
+  const [model, setModel] = useState(providerConfig.model);
+  const [baseUrl, setBaseUrl] = useState(providerConfig.baseUrl);
+  const [apiKey, setApiKey] = useState(providerConfig.apiKey ?? '');
+
+  useEffect(() => {
+    setModel(providerConfig.model);
+    setBaseUrl(providerConfig.baseUrl);
+    setApiKey(providerConfig.apiKey ?? '');
+  }, [providerConfig.baseUrl, providerConfig.model, providerConfig.apiKey]);
+
+  const providerOptions = providers.map((provider) => (
+    <option key={provider.value} value={provider.value}>
+      {provider.label}
+    </option>
+  ));
+
+  function updateProviderConfig(next: Partial<typeof providerConfig>) {
+    updateSettings({
+      ai: {
+        providers: {
+          [settings.ai.provider]: {
+            ...providerConfig,
+            ...next,
+          },
+        },
+      },
+    });
+  }
+
+  function updateProvider(provider: AiProvider) {
+    updateSettings({ ai: { provider } });
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <h3 className="text-sm font-semibold">AI Assistant</h3>
+        <p className="text-xs text-muted-foreground">
+          Configure the optional BYOAI assistant. All requests are sent to the
+          provider you choose.
+        </p>
+      </div>
+
+      <SettingToggleRow
+        label="Enable AI Assistant"
+        description="Turn on the BYOAI chat tab and MCP schema context."
+        checked={settings.ai.enabled}
+        onCheckedChange={(checked) => updateSettings({ ai: { enabled: checked } })}
+      />
+
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground">Provider</Label>
+            <select
+              value={settings.ai.provider}
+              onChange={(event) => updateProvider(event.target.value as AiProvider)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              disabled={!settings.ai.enabled}
+              aria-label="AI provider"
+            >
+              {providerOptions}
+            </select>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground">Model</Label>
+            <Input
+              value={model}
+              onChange={(event) => setModel(event.target.value)}
+              onBlur={() => updateProviderConfig({ model })}
+              placeholder="Model name"
+              disabled={!settings.ai.enabled}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground">Base URL</Label>
+            <Input
+              value={baseUrl}
+              onChange={(event) => setBaseUrl(event.target.value)}
+              onBlur={() => updateProviderConfig({ baseUrl })}
+              placeholder="https://..."
+              disabled={!settings.ai.enabled}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground">API Key</Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(event) => setApiKey(event.target.value)}
+                placeholder="Stored securely with your OS keychain"
+                disabled={!settings.ai.enabled}
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => updateProviderConfig({ apiKey: apiKey.trim() || undefined })}
+                  disabled={!settings.ai.enabled}
+                >
+                  Save Key
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setApiKey('');
+                    updateProviderConfig({ apiKey: undefined });
+                  }}
+                  disabled={!settings.ai.enabled}
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-col gap-3">
+          <div>
+            <h4 className="text-sm font-semibold">MCP Schema Context</h4>
+            <p className="text-xs text-muted-foreground">
+              Connect to a PostgreSQL MCP server to supply schema metadata to the model.
+            </p>
+          </div>
+          <SettingToggleRow
+            label="Enable MCP Context"
+            description="Fetch schema context via a Model Context Protocol server."
+            checked={settings.ai.mcp.enabled}
+            onCheckedChange={(checked) => updateSettings({ ai: { mcp: { enabled: checked } } })}
+          />
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground">Server Command</Label>
+            <Input
+              value={settings.ai.mcp.serverCommand}
+              onChange={(event) =>
+                updateSettings({ ai: { mcp: { serverCommand: event.target.value } } })
+              }
+              placeholder="pg-mcp-server"
+              disabled={!settings.ai.enabled || !settings.ai.mcp.enabled}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label className="text-xs text-muted-foreground">Server Args</Label>
+            <Input
+              value={settings.ai.mcp.serverArgs}
+              onChange={(event) =>
+                updateSettings({ ai: { mcp: { serverArgs: event.target.value } } })
+              }
+              placeholder="--stdio"
+              disabled={!settings.ai.enabled || !settings.ai.mcp.enabled}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

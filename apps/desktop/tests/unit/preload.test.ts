@@ -29,6 +29,11 @@ describe("preload API contract", () => {
     const exposed = Object.fromEntries(
       exposeInMainWorld.mock.calls.map(([key, value]) => [key, value]),
     ) as {
+      aiApi: {
+        generateChat: (params: unknown) => Promise<unknown>;
+        executeSql: (params: unknown) => Promise<unknown>;
+        clearContext: (connectionId: string) => Promise<unknown>;
+      };
       connectionApi: {
         getAll: () => Promise<unknown>;
         showOpenFileDialog: (options: unknown) => Promise<unknown>;
@@ -47,6 +52,30 @@ describe("preload API contract", () => {
 
     await exposed.connectionApi.getAll();
     expect(invoke).toHaveBeenCalledWith("connections:get-all");
+
+    await exposed.aiApi.generateChat({ connectionId: "c1", messages: [] });
+    expect(invoke).toHaveBeenCalledWith("ai:generate", {
+      connectionId: "c1",
+      messages: [],
+    });
+
+    await exposed.aiApi.executeSql({
+      connectionId: "c1",
+      sql: "select 1",
+      page: 1,
+      pageSize: 50,
+      allowWrite: false,
+    });
+    expect(invoke).toHaveBeenCalledWith("ai:execute-sql", {
+      connectionId: "c1",
+      sql: "select 1",
+      page: 1,
+      pageSize: 50,
+      allowWrite: false,
+    });
+
+    await exposed.aiApi.clearContext("c1");
+    expect(invoke).toHaveBeenCalledWith("ai:clear-context", "c1");
 
     await exposed.connectionApi.showOpenFileDialog({ title: "Select file" });
     expect(invoke).toHaveBeenCalledWith("connections:show-open-file-dialog", {

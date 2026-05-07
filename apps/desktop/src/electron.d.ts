@@ -6,6 +6,7 @@ import type {
   SchemaTreeOptions,
 } from "./shared/types/connection";
 import type { AppSettings, AppSettingsPatch } from "./shared/types/settings";
+import type { AiChatRequest, AiChatResponse, AiSqlExecuteParams, AiSqlExecuteResult } from "./shared/types/ai";
 import type {
   ColumnStructure,
   ConstraintInfo,
@@ -83,6 +84,12 @@ interface TableDataApi {
   onExportProgress(callback: (rowCount: number) => void): () => void;
 }
 
+interface AiApi {
+  generateChat(params: AiChatRequest): Promise<IpcResult<AiChatResponse>>;
+  executeSql(params: AiSqlExecuteParams): Promise<IpcResult<AiSqlExecuteResult>>;
+  clearContext(connectionId: string): Promise<IpcResult<boolean>>;
+}
+
 interface HelpApi {
   onShowLicense(callback: () => void): () => void;
   onShowAbout(callback: () => void): () => void;
@@ -96,6 +103,7 @@ interface WorkspaceApi {
 
 declare global {
   interface Window {
+    aiApi: AiApi;
     connectionApi: ConnectionApi;
     settingsApi: SettingsApi;
     tableDataApi: TableDataApi;
