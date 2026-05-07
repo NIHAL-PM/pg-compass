@@ -35,10 +35,12 @@ function decryptField(value: string | undefined): string | undefined {
 
 function encryptSettings(settings: AppSettings): AppSettings {
   const encrypted = structuredClone(settings);
-  for (const provider of Object.keys(encrypted.ai.providers)) {
-    const config = encrypted.ai.providers[provider as keyof typeof encrypted.ai.providers];
-    if (config.apiKey) {
-      config.apiKey = encryptField(config.apiKey);
+  if (encrypted.ai?.providers) {
+    for (const provider of Object.keys(encrypted.ai.providers)) {
+      const config = encrypted.ai.providers[provider as keyof typeof encrypted.ai.providers];
+      if (config.apiKey) {
+        config.apiKey = encryptField(config.apiKey);
+      }
     }
   }
   return encrypted;
@@ -46,13 +48,19 @@ function encryptSettings(settings: AppSettings): AppSettings {
 
 function decryptSettings(settings: AppSettings): AppSettings {
   const decrypted = structuredClone(settings);
-  for (const provider of Object.keys(decrypted.ai.providers)) {
-    const config = decrypted.ai.providers[provider as keyof typeof decrypted.ai.providers];
-    if (config.apiKey) {
-      config.apiKey = decryptField(config.apiKey);
+  if (decrypted.ai?.providers) {
+    for (const provider of Object.keys(decrypted.ai.providers)) {
+      const config = decrypted.ai.providers[provider as keyof typeof decrypted.ai.providers];
+      if (config.apiKey) {
+        config.apiKey = decryptField(config.apiKey);
+      }
     }
   }
   return decrypted;
+}
+
+function normalizeSettings(settings: AppSettings): AppSettings {
+  return mergeSettings(DEFAULT_APP_SETTINGS, settings as AppSettingsPatch);
 }
 
 function mergeSettings(
@@ -95,7 +103,8 @@ function mergeSettings(
 }
 
 export function getSettings(): AppSettings {
-  return decryptSettings(store.get('settings'));
+  const stored = store.get('settings');
+  return decryptSettings(normalizeSettings(stored));
 }
 
 export function updateSettings(patch: AppSettingsPatch): AppSettings {
